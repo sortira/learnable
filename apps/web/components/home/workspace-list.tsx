@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { type FormEvent, useEffect, useState, useTransition } from "react";
 import type { Workspace } from "@learnable/contracts";
 import { apiFetch } from "@/lib/api";
 
 export function WorkspaceList() {
+  const router = useRouter();
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -25,9 +27,10 @@ export function WorkspaceList() {
     }
   }
 
-  function handleCreateWorkspace(formData: FormData) {
-    const nextName = String(formData.get("name") ?? "").trim();
-    const nextDescription = String(formData.get("description") ?? "").trim();
+  function handleCreateWorkspace(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const nextName = name.trim();
+    const nextDescription = description.trim();
     if (!nextName) {
       setError("Workspace name is required.");
       return;
@@ -45,6 +48,7 @@ export function WorkspaceList() {
         setWorkspaces((current) => [workspace, ...current]);
         setName("");
         setDescription("");
+        router.push(`/workspace/${workspace.id}`);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to create workspace.");
       }
@@ -92,13 +96,14 @@ export function WorkspaceList() {
         <p className="mt-2 text-sm leading-6 text-white/70">
           Start with a focused corpus for a topic, project, class, or research sprint.
         </p>
-        <form action={handleCreateWorkspace} className="mt-6 space-y-4">
+        <form onSubmit={handleCreateWorkspace} className="mt-6 space-y-4">
           <label className="block">
             <span className="mb-2 block text-sm text-white/80">Name</span>
             <input
               name="name"
               value={name}
               onChange={(event) => setName(event.target.value)}
+              required
               className="w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-sm outline-none transition focus:border-white/30"
               placeholder="Machine Learning Papers"
             />

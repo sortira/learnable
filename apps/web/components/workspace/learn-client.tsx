@@ -14,6 +14,9 @@ export function LearnClient({ workspaceId }: LearnClientProps) {
   const [plans, setPlans] = useState<StudyPlan[]>([]);
   const [mastery, setMastery] = useState<MasteryState[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [questionOutcomes, setQuestionOutcomes] = useState<Record<string, "correct" | "incorrect">>({});
+  const [submittingQuizId, setSubmittingQuizId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
@@ -39,16 +42,85 @@ export function LearnClient({ workspaceId }: LearnClientProps) {
 
   function handleGenerate(kind: "flashcards" | "quizzes" | "study-plan") {
     setError(null);
+    setStatusMessage(null);
     startTransition(async () => {
       try {
         await apiFetch(`/api/workspaces/${workspaceId}/learning/${kind}`, {
           method: "POST"
         });
         await refresh();
+        setStatusMessage(`${labelForArtifact(kind)} generated.`);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to generate learning artifact.");
       }
     });
+  }
+
+  function setQuestionOutcome(questionId: string, outcome: "correct" | "incorrect") {
+    setQuestionOutcomes((current) => ({
+      ...current,
+      [questionId]: outcome
+    }));
+  }
+
+  async function submitQuizAttempt(quiz: Quiz) {
+    const unanswered = quiz.questions.filter((question) => !questionOutcomes[question.id]);
+    if (unanswered.length > 0) {
+      setError("Mark each quiz question as correct or incorrect before submitting the attempt.");
+      return;
+    }
+
+    setError(null);
+    setStatusMessage(null);
+    setSubmittingQuizId(quiz.id);
+
+    try {
+      const correctCount = quiz.questions.filter(
+        (question) => questionOutcomes[question.id] === "correct"
+      ).length;
+      const conceptGroups = new Map<string, number[]>();
+
+      for (const question of quiz.questions) {
+        const nextScore = questionOutcomes[question.id] === "correct" ? 1 : 0;
+        const scores = conceptGroups.get(question.concept) ?? [];
+        scores.push(nextScore);
+        conceptGroups.set(question.concept, scores);
+      }
+
+      const conceptScores = Object.fromEntries(
+        Array.from(conceptGroups.entries()).map(([concept, scores]) => [
+          concept,
+          scores.reduce((total, score) => total + score, 0) / scores.length
+        ])
+      );
+
+      await apiFetch("/api/quiz-attempts", {
+        method: "POST",
+        body: JSON.stringify({
+          quiz_id: quiz.id,
+          workspace_id: workspaceId,
+          score: correctCount / quiz.questions.length,
+          total_questions: quiz.questions.length,
+          concept_scores: conceptScores
+        })
+      });
+      await refresh();
+      setStatusMessage(`Quiz attempt recorded at ${correctCount}/${quiz.questions.length}.`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to record the quiz attempt.");
+    } finally {
+      setSubmittingQuizId(null);
+    }
+  }
+
+  function labelForArtifact(kind: "flashcards" | "quizzes" | "study-plan") {
+    if (kind === "quizzes") {
+      return "Quiz";
+    }
+    if (kind === "study-plan") {
+      return "Study plan";
+    }
+    return "Flashcards";
   }
 
   return (
@@ -85,6 +157,7 @@ export function LearnClient({ workspaceId }: LearnClientProps) {
           </button>
         </div>
         {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
+        {statusMessage ? <p className="mt-2 text-sm text-moss">{statusMessage}</p> : null}
       </section>
 
       <section className="grid gap-6 xl:grid-cols-3">
@@ -121,12 +194,52 @@ export function LearnClient({ workspaceId }: LearnClientProps) {
                 <article key={quiz.id} className="rounded-2xl border border-black/10 bg-white/80 p-4">
                   <h3 className="font-medium">{quiz.title}</h3>
                   <div className="mt-3 space-y-3">
-                    {quiz.questions.slice(0, 3).map((question) => (
-                      <div key={question.id}>
+                    {quiz.questions.map((question) => (
+                      <div key={question.id} className="rounded-2xl bg-sand px-4 py-4">
                         <p className="text-sm font-medium">{question.prompt}</p>
-                        <p className="mt-2 text-sm text-steel">{question.answer}</p>
+                        <p className="mt-2 text-xs uppercase tracking-[0.2em] text-steel">
+                          {question.concept} · {question.difficulty}
+                        </p>
+                        <p className="mt-3 text-sm text-steel">{question.answer}</p>
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setQuestionOutcome(question.id, "correct")}
+                            className={`rounded-full px-4 py-2 text-xs font-medium transition ${
+                              questionOutcomes[question.id] === "correct"
+                                ? "bg-moss text-white"
+                                : "bg-white text-steel"
+                            }`}
+                          >
+                            I got this right
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setQuestionOutcome(question.id, "incorrect")}
+                            className={`rounded-full px-4 py-2 text-xs font-medium transition ${
+                              questionOutcomes[question.id] === "incorrect"
+                                ? "bg-ember text-white"
+                                : "bg-white text-steel"
+                            }`}
+                          >
+                            I missed this
+                          </button>
+                        </div>
                       </div>
                     ))}
+                  </div>
+                  <div className="mt-4 flex items-center justify-between gap-4">
+                    <p className="text-xs uppercase tracking-[0.2em] text-steel">
+                      Self-check each answer, then record the attempt to update mastery.
+                    </p>
+                    <button
+                      type="button"
+                      disabled={submittingQuizId === quiz.id}
+                      onClick={() => void submitQuizAttempt(quiz)}
+                      className="rounded-full bg-ink px-4 py-2 text-xs font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {submittingQuizId === quiz.id ? "Saving..." : "Record attempt"}
+                    </button>
                   </div>
                 </article>
               ))

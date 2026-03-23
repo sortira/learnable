@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { type FormEvent, useEffect, useState, useTransition } from "react";
 import type { Report, ResearchRun } from "@/types";
 import { apiFetch } from "@/lib/api";
 
@@ -32,9 +32,11 @@ export function ResearchClient({ workspaceId }: ResearchClientProps) {
     }
   }
 
-  function handleRun(formData: FormData) {
-    const nextQuery = String(formData.get("query") ?? "").trim();
+  function handleRun(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const nextQuery = query.trim();
     if (!nextQuery) {
+      setError("A research question is required.");
       return;
     }
     setError(null);
@@ -70,11 +72,12 @@ export function ResearchClient({ workspaceId }: ResearchClientProps) {
         <p className="mt-2 text-sm leading-6 text-steel">
           The current backend executes a bounded, evidence-grounded research workflow over the workspace corpus.
         </p>
-        <form action={handleRun} className="mt-6 space-y-3">
+        <form onSubmit={handleRun} className="mt-6 space-y-3">
           <textarea
             name="query"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
+            required
             className="min-h-32 w-full rounded-[1.5rem] border border-black/10 bg-sand px-5 py-4 text-sm outline-none"
             placeholder="Compare the central ideas across these sources and tell me what to study next."
           />

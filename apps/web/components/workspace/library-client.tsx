@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { type FormEvent, useEffect, useState, useTransition } from "react";
 import type { Document, Source } from "@/types";
 import { apiFetch } from "@/lib/api";
 
@@ -32,9 +32,11 @@ export function LibraryClient({ workspaceId }: LibraryClientProps) {
     }
   }
 
-  function handleUrlSubmit(formData: FormData) {
-    const nextUrl = String(formData.get("url") ?? "").trim();
+  function handleUrlSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const nextUrl = url.trim();
     if (!nextUrl) {
+      setError("A source URL is required.");
       return;
     }
     setError(null);
@@ -52,7 +54,10 @@ export function LibraryClient({ workspaceId }: LibraryClientProps) {
     });
   }
 
-  function handleUpload(formData: FormData) {
+  function handleUpload(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const formData = new FormData(form);
     const file = formData.get("file");
     if (!(file instanceof File)) {
       setError("Choose a file to upload.");
@@ -67,6 +72,7 @@ export function LibraryClient({ workspaceId }: LibraryClientProps) {
           method: "POST",
           body: payload
         });
+        form.reset();
         await refresh();
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to upload source.");
@@ -82,11 +88,12 @@ export function LibraryClient({ workspaceId }: LibraryClientProps) {
           Add papers, notes, and links to seed the research and learning engine.
         </p>
         <div className="mt-6 space-y-6">
-          <form action={handleUpload} className="space-y-3">
+          <form onSubmit={handleUpload} className="space-y-3">
             <label className="block text-sm font-medium">Upload a file</label>
             <input
               name="file"
               type="file"
+              required
               className="block w-full rounded-2xl border border-black/10 bg-sand px-4 py-3 text-sm"
             />
             <button
@@ -98,12 +105,13 @@ export function LibraryClient({ workspaceId }: LibraryClientProps) {
             </button>
           </form>
 
-          <form action={handleUrlSubmit} className="space-y-3">
+          <form onSubmit={handleUrlSubmit} className="space-y-3">
             <label className="block text-sm font-medium">Add a URL</label>
             <input
               name="url"
               value={url}
               onChange={(event) => setUrl(event.target.value)}
+              required
               className="w-full rounded-2xl border border-black/10 bg-sand px-4 py-3 text-sm outline-none"
               placeholder="https://example.com/research-paper"
             />

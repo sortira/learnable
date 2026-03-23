@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { type FormEvent, useState, useTransition } from "react";
 import type { SearchResponse } from "@/types";
 import { apiFetch } from "@/lib/api";
 
@@ -14,9 +14,11 @@ export function SearchClient({ workspaceId }: SearchClientProps) {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  function handleSearch(formData: FormData) {
-    const nextQuery = String(formData.get("query") ?? "").trim();
+  function handleSearch(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const nextQuery = query.trim();
     if (!nextQuery) {
+      setError("A search query is required.");
       return;
     }
     setError(null);
@@ -40,11 +42,12 @@ export function SearchClient({ workspaceId }: SearchClientProps) {
         <p className="mt-2 text-sm leading-6 text-steel">
           Query the current corpus and inspect chunk-level grounded results.
         </p>
-        <form action={handleSearch} className="mt-6 flex flex-col gap-3 md:flex-row">
+        <form onSubmit={handleSearch} className="mt-6 flex flex-col gap-3 md:flex-row">
           <input
             name="query"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
+            required
             className="flex-1 rounded-full border border-black/10 bg-sand px-5 py-3 text-sm outline-none"
             placeholder="Search for a concept, method, or claim"
           />
