@@ -1,0 +1,43 @@
+flowchart TD
+    A[Create workspace] --> B{Add source type}
+    B -->|File upload| C[Store source file metadata]
+    B -->|URL ingest| D[Fetch and normalize page]
+
+    C --> E[Parse source into markdown]
+    D --> E
+
+    E --> F[Split into structure-aware chunks]
+    F --> G[Persist chunks and source links]
+    G --> H{Retrieval path}
+
+    H -->|Vector infra available| I[Embed and query Qdrant]
+    H -->|No vector infra| J[Lexical fallback ranking]
+
+    I --> K[Rank evidence blocks]
+    J --> K
+
+    K --> L[Run bounded research plan]
+    L --> M[Generate evidence cards]
+    M --> N[Generate report markdown]
+
+    N --> O{Learning generation}
+    O --> P[Generate flashcards]
+    O --> Q[Generate quiz]
+    O --> R[Generate study plan]
+
+    Q --> S[Self-check answers in UI]
+    S --> T[Record quiz attempt]
+    T --> U[Update mastery state]
+
+    M --> V[Trace citations back to chunks]
+    N --> V
+
+    classDef action fill:#15251c,color:#fff,stroke:#15251c
+    classDef data fill:#f7f2e8,color:#15251c,stroke:#c9b79b
+    classDef learning fill:#a6b58e,color:#15251c,stroke:#5f6f4f
+    classDef output fill:#cf6b4c,color:#fff,stroke:#9f4f39
+
+    class A,B,C,D,E,F,H,K,L,S,T action
+    class G,I,J,U,V data
+    class O,P,Q,R learning
+    class M,N output

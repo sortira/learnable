@@ -1,0 +1,75 @@
+flowchart LR
+    User[User in Browser]
+
+    subgraph Web["apps/web"]
+        Landing[Home and Workspace UI]
+        Library[Library Search Research Learn pages]
+        Proxy["Next.js /api proxy"]
+    end
+
+    subgraph API["services/api"]
+        WorkspaceAPI[Workspace and source endpoints]
+        SearchAPI[Search and retrieval endpoints]
+        ResearchAPI[Research run endpoints]
+        LearningAPI[Flashcards quizzes mastery study plans]
+    end
+
+    subgraph Support["Optional support services"]
+        Ingest["services/ingest\ntext parsing adapter"]
+        Orchestrator["services/orchestrator\nplanning and reflection"]
+        Gateway["services/model-gateway\nmock or Ollama routing"]
+    end
+
+    subgraph Storage["Storage and indexing"]
+        SQLite[(SQLite default)]
+        Postgres[(Postgres optional)]
+        Files["Local filesystem storage"]
+        Qdrant[(Qdrant optional)]
+        Redis[(Redis optional)]
+        MinIO[(MinIO optional)]
+    end
+
+    subgraph Models["Local model path"]
+        Mock["Mock mode"]
+        Ollama["Ollama local models\nqwen3 0.6b\ngemma3 1b\nllama3.2 1b\nqwen3-embedding 0.6b"]
+    end
+
+    User --> Landing --> Library --> Proxy
+    Proxy --> WorkspaceAPI
+    Proxy --> SearchAPI
+    Proxy --> ResearchAPI
+    Proxy --> LearningAPI
+
+    WorkspaceAPI --> SQLite
+    WorkspaceAPI --> Postgres
+    WorkspaceAPI --> Files
+
+    SearchAPI --> SQLite
+    SearchAPI --> Postgres
+    SearchAPI --> Qdrant
+    SearchAPI --> Redis
+
+    ResearchAPI --> SQLite
+    ResearchAPI --> Postgres
+    ResearchAPI --> Orchestrator
+    ResearchAPI --> Gateway
+
+    LearningAPI --> SQLite
+    LearningAPI --> Postgres
+
+    WorkspaceAPI --> Ingest
+    WorkspaceAPI --> MinIO
+    Ingest --> Files
+
+    Gateway --> Mock
+    Gateway --> Ollama
+
+    classDef app fill:#15251c,color:#fff,stroke:#15251c
+    classDef service fill:#a6b58e,color:#15251c,stroke:#5f6f4f
+    classDef storage fill:#f7f2e8,color:#15251c,stroke:#c9b79b
+    classDef model fill:#cf6b4c,color:#fff,stroke:#9f4f39
+
+    class Landing,Library,Proxy,WorkspaceAPI,SearchAPI,ResearchAPI,LearningAPI app
+    class Ingest,Orchestrator,Gateway service
+    class SQLite,Postgres,Files,Qdrant,Redis,MinIO storage
+    class Mock,Ollama model

@@ -89,3 +89,32 @@ This starts:
 - The API includes fallback logic, so the product still runs when optional services are unavailable.
 - The model gateway defaults to `mock` mode. Switch to `ollama` when the local model stack is installed.
 - Best-tested upload path is currently `.txt` and `.md`.
+
+## Windows handoff
+
+If you move from WSL to native Windows, rebuild the runtime dependencies on Windows instead of reusing the WSL-generated ones.
+
+Delete or ignore before the Windows run:
+
+- `.venv`
+- `node_modules`
+- `apps/web/.next`
+- `test_learnable.db`
+- local temporary files created under `/tmp` by the WSL session
+
+Keep or recreate:
+
+- source code
+- `README.md`
+- Mermaid sources under `docs/assets/readme/`
+- your homepage screenshot under `docs/assets/readme/homepage-placeholder.png`
+
+Future local model setup on Windows:
+
+1. Install Ollama for Windows.
+2. Set `LEARNABLE_MODEL_GATEWAY_MODE=ollama`.
+3. Pull:
+   - `qwen3:0.6b`
+   - `gemma3:1b`
+   - `llama3.2:1b`
+   - `qwen3-embedding:0.6b`

@@ -7,9 +7,9 @@ It combines two product surfaces on top of one shared knowledge engine:
 - `Research Workspace`: ingest sources, search them, run bounded deep-research jobs, and generate traceable reports.
 - `Learning Studio`: turn the same grounded evidence into flashcards, quizzes, study plans, and mastery tracking.
 
-![Learnable homepage placeholder](docs/assets/readme/homepage-placeholder.svg)
+![Learnable homepage](docs/assets/readme/homepage-placeholder.png)
 
-> Replace the placeholder images in [`docs/assets/readme/`](docs/assets/readme/) with your own screenshots and diagrams.
+> Homepage screenshot lives in [`docs/assets/readme/homepage-placeholder.png`](docs/assets/readme/homepage-placeholder.png). The architecture, workflow, and Windows setup diagrams are kept as Mermaid sources in [`docs/assets/readme/`](docs/assets/readme/).
 
 ## Why this repo exists
 
@@ -57,7 +57,67 @@ The key product goals are:
 
 ## Product architecture
 
-![Learnable architecture placeholder](docs/assets/readme/architecture-placeholder.svg)
+```mermaid
+flowchart LR
+    User[User in Browser]
+
+    subgraph Web["apps/web"]
+        Landing[Home and Workspace UI]
+        Library[Library Search Research Learn pages]
+        Proxy["Next.js /api proxy"]
+    end
+
+    subgraph API["services/api"]
+        WorkspaceAPI[Workspace and source endpoints]
+        SearchAPI[Search and retrieval endpoints]
+        ResearchAPI[Research run endpoints]
+        LearningAPI[Flashcards quizzes mastery study plans]
+    end
+
+    subgraph Support["Optional support services"]
+        Ingest["services/ingest text parsing adapter"]
+        Orchestrator["services/orchestrator planning and reflection"]
+        Gateway["services/model-gateway mock or Ollama routing"]
+    end
+
+    subgraph Storage["Storage and indexing"]
+        SQLite[(SQLite default)]
+        Postgres[(Postgres optional)]
+        Files["Local filesystem storage"]
+        Qdrant[(Qdrant optional)]
+        Redis[(Redis optional)]
+        MinIO[(MinIO optional)]
+    end
+
+    subgraph Models["Local model path"]
+        Mock["Mock mode"]
+        Ollama["Ollama local models"]
+    end
+
+    User --> Landing --> Library --> Proxy
+    Proxy --> WorkspaceAPI
+    Proxy --> SearchAPI
+    Proxy --> ResearchAPI
+    Proxy --> LearningAPI
+    WorkspaceAPI --> SQLite
+    WorkspaceAPI --> Postgres
+    WorkspaceAPI --> Files
+    SearchAPI --> SQLite
+    SearchAPI --> Postgres
+    SearchAPI --> Qdrant
+    SearchAPI --> Redis
+    ResearchAPI --> SQLite
+    ResearchAPI --> Postgres
+    ResearchAPI --> Orchestrator
+    ResearchAPI --> Gateway
+    LearningAPI --> SQLite
+    LearningAPI --> Postgres
+    WorkspaceAPI --> Ingest
+    WorkspaceAPI --> MinIO
+    Ingest --> Files
+    Gateway --> Mock
+    Gateway --> Ollama
+```
 
 ### High-level system
 
@@ -138,7 +198,33 @@ learnable/
 
 ## Workflow
 
-![Learnable workflow placeholder](docs/assets/readme/workflow-placeholder.svg)
+```mermaid
+flowchart TD
+    A[Create workspace] --> B{Add source type}
+    B -->|File upload| C[Store source file metadata]
+    B -->|URL ingest| D[Fetch and normalize page]
+    C --> E[Parse source into markdown]
+    D --> E
+    E --> F[Split into structure-aware chunks]
+    F --> G[Persist chunks and source links]
+    G --> H{Retrieval path}
+    H -->|Vector infra available| I[Embed and query Qdrant]
+    H -->|No vector infra| J[Lexical fallback ranking]
+    I --> K[Rank evidence blocks]
+    J --> K
+    K --> L[Run bounded research plan]
+    L --> M[Generate evidence cards]
+    M --> N[Generate report markdown]
+    N --> O{Learning generation}
+    O --> P[Generate flashcards]
+    O --> Q[Generate quiz]
+    O --> R[Generate study plan]
+    Q --> S[Self-check answers in UI]
+    S --> T[Record quiz attempt]
+    T --> U[Update mastery state]
+    M --> V[Trace citations back to chunks]
+    N --> V
+```
 
 ### End-to-end data flow
 
@@ -182,7 +268,31 @@ The prototype architecture is designed around small specialized models instead o
 
 ## Quick start on a laptop
 
-![Learnable setup placeholder](docs/assets/readme/requirements-placeholder.svg)
+```mermaid
+flowchart TD
+    A[Windows-native setup] --> B[Install Python 3.10+]
+    A --> C[Install Node.js 20+]
+    A --> D[Install Git]
+    A --> E[Install uv]
+    A --> F[Enable corepack]
+    B --> G[Clone repo on Windows filesystem]
+    C --> G
+    D --> G
+    E --> H[Create fresh Windows .venv]
+    F --> I[Install pnpm workspace dependencies]
+    G --> H
+    G --> I
+    H --> J[Install API ingest orchestrator and model-gateway packages]
+    I --> K[Create apps/web/.env.local]
+    K --> L[Keep NEXT_PUBLIC_API_BASE_URL empty]
+    K --> M[Set LEARNABLE_INTERNAL_API_URL to http://127.0.0.1:8000]
+    J --> N[Start model-gateway]
+    J --> O[Start orchestrator]
+    J --> P[Start ingest]
+    J --> Q[Start API]
+    I --> R[Start web app]
+    R --> S[Open http://localhost:3000]
+```
 
 ### Prerequisites
 
@@ -314,6 +424,38 @@ ollama pull qwen3-embedding:0.6b
 
 The app still talks only to `services/model-gateway`; you do not need to change the frontend or API code paths.
 
+### Windows handoff
+
+Nothing model-related has been downloaded yet. When you switch to Windows, treat this repo as source code only and rebuild the runtime dependencies natively on Windows.
+
+Delete or ignore these WSL-generated artifacts before your Windows run:
+
+- `.venv`
+- `node_modules`
+- `apps/web/.next`
+- `test_learnable.db`
+- any temporary files under `/tmp` from this WSL session
+
+Recommended Windows-first sequence:
+
+1. Clone or reopen the repo from Windows.
+2. Create a fresh Windows virtualenv.
+3. Reinstall Python dependencies.
+4. Reinstall workspace Node dependencies.
+5. Keep `NEXT_PUBLIC_API_BASE_URL` empty.
+6. Set `LEARNABLE_INTERNAL_API_URL=http://127.0.0.1:8000` in `apps/web/.env.local`.
+7. Start the services from Windows terminals.
+
+Future local model setup on Windows:
+
+1. Install Ollama for Windows.
+2. Set `LEARNABLE_MODEL_GATEWAY_MODE=ollama`.
+3. Pull:
+   - `qwen3:0.6b`
+   - `gemma3:1b`
+   - `llama3.2:1b`
+   - `qwen3-embedding:0.6b`
+
 ### Optional: infrastructure stack
 
 If you want the full local stack, start the infrastructure services:
@@ -402,9 +544,9 @@ Add or replace screenshots and diagrams here:
 
 - [`docs/assets/readme/`](docs/assets/readme/)
 
-Recommended image order in the README:
+Recommended assets in this folder:
 
 1. homepage screenshot
-2. architecture diagram
-3. workflow diagram
-4. setup or requirements diagram
+2. architecture Mermaid source: `architecture.mmd`
+3. workflow Mermaid source: `workflow.mmd`
+4. Windows setup Mermaid source: `windows-setup.mmd`

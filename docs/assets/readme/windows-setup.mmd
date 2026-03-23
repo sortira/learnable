@@ -1,0 +1,49 @@
+flowchart TD
+    A[Windows-native setup] --> B[Install Python 3.10+]
+    A --> C[Install Node.js 20+]
+    A --> D[Install Git]
+    A --> E[Install uv]
+    A --> F[Enable corepack]
+
+    B --> G[Clone repo on Windows filesystem]
+    C --> G
+    D --> G
+    E --> H[Create fresh Windows .venv]
+    F --> I[Install pnpm workspace dependencies]
+
+    G --> H
+    G --> I
+
+    H --> J[Install API ingest orchestrator model-gateway packages]
+    I --> K[Create apps/web/.env.local or copy root .env]
+
+    K --> L[Keep NEXT_PUBLIC_API_BASE_URL empty]
+    K --> M[Set LEARNABLE_INTERNAL_API_URL to http://127.0.0.1:8000]
+
+    J --> N[Start model-gateway]
+    J --> O[Start orchestrator]
+    J --> P[Start ingest]
+    J --> Q[Start API]
+    I --> R[Start web app]
+
+    subgraph Later["Future local model setup"]
+        S[Install Ollama for Windows]
+        T[Switch LEARNABLE_MODEL_GATEWAY_MODE to ollama]
+        U[Pull qwen3:0.6b]
+        V[Pull gemma3:1b]
+        W[Pull llama3.2:1b]
+        X[Pull qwen3-embedding:0.6b]
+    end
+
+    R --> Y[Open http://localhost:3000]
+    Q --> Y
+    N --> T
+    S --> T --> U --> V --> W --> X
+
+    classDef base fill:#15251c,color:#fff,stroke:#15251c
+    classDef run fill:#a6b58e,color:#15251c,stroke:#5f6f4f
+    classDef later fill:#cf6b4c,color:#fff,stroke:#9f4f39
+
+    class A,B,C,D,E,G,H,I,J,K,L,M base
+    class N,O,P,Q,R,Y run
+    class S,T,U,V,W,X later
