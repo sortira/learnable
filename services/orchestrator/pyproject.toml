@@ -1,0 +1,10 @@
+[project]
+name = "learnable-orchestrator"
+version = "0.1.0"
+description = "Learnable orchestrator service"
+requires-python = ">=3.10"
+dependencies = [
+  "fastapi>=0.115.6",
+  "pydantic-settings>=2.7.0",
+  "uvicorn>=0.32.1"
+]

@@ -1,0 +1,31 @@
+# Node
+node_modules/
+.next/
+dist/
+coverage/
+.turbo/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.venv/
+venv/
+
+# Environment
+.env
+.env.local
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# Generated runtime state
+data/
+tmp/
+
+# Logs
+*.log
