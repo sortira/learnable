@@ -9,19 +9,19 @@ infra:
 	docker compose -f infra/compose/local.yml up -d postgres redis qdrant minio
 
 api:
-	cd services/api && python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+	cd services/api && python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 
 web:
-	cd apps/web && pnpm dev
+	cd apps/web && pnpm dev --hostname 127.0.0.1 --port 3000
 
 ingest:
-	cd services/ingest && python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8100
+	cd services/ingest && python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8100
 
 orchestrator:
-	cd services/orchestrator && python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8200
+	cd services/orchestrator && python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8200
 
 model-gateway:
-	cd services/model-gateway && python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8300
+	cd services/model-gateway && python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8300
 
 lint:
 	@echo "Lint commands are defined per package."

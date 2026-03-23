@@ -34,30 +34,32 @@ cp .env.example .env
 ```bash
 source .venv/bin/activate
 cd services/model-gateway
-python -m uvicorn app.main:app --host 0.0.0.0 --port 8300
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8300
 ```
 
 ```bash
 source .venv/bin/activate
 cd services/orchestrator
-python -m uvicorn app.main:app --host 0.0.0.0 --port 8200
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8200
 ```
 
 ```bash
 source .venv/bin/activate
 cd services/ingest
-python -m uvicorn app.main:app --host 0.0.0.0 --port 8100
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8100
 ```
 
 ```bash
 source .venv/bin/activate
 cd services/api
-python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
 ```bash
 cd apps/web
-corepack pnpm dev --hostname 0.0.0.0 --port 3000
+corepack pnpm dev --hostname 127.0.0.1 --port 3000
+
+Leave `NEXT_PUBLIC_API_BASE_URL` unset or empty so the web app uses the built-in Next.js proxy for `/api/*` requests.
 ```
 
 ## Optional extras

@@ -231,6 +231,8 @@ corepack pnpm install
 cp .env.example .env
 ```
 
+Keep `NEXT_PUBLIC_API_BASE_URL` empty unless you have a specific reason to call the API directly from the browser. The default setup uses a same-origin Next.js proxy, which avoids the `Failed to fetch` issue that can happen when `localhost:8000` is not exposed cleanly to the browser.
+
 #### 5. Start the services
 
 Open five terminals.
@@ -238,30 +240,30 @@ Open five terminals.
 ```bash
 source .venv/bin/activate
 cd services/model-gateway
-python -m uvicorn app.main:app --host 0.0.0.0 --port 8300
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8300
 ```
 
 ```bash
 source .venv/bin/activate
 cd services/orchestrator
-python -m uvicorn app.main:app --host 0.0.0.0 --port 8200
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8200
 ```
 
 ```bash
 source .venv/bin/activate
 cd services/ingest
-python -m uvicorn app.main:app --host 0.0.0.0 --port 8100
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8100
 ```
 
 ```bash
 source .venv/bin/activate
 cd services/api
-python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
 ```bash
 cd apps/web
-corepack pnpm dev --hostname 0.0.0.0 --port 3000
+corepack pnpm dev --hostname 127.0.0.1 --port 3000
 ```
 
 Then open `http://localhost:3000`.
@@ -273,12 +275,12 @@ If you only want to inspect the main UI and API loop, you can start just:
 ```bash
 source .venv/bin/activate
 cd services/api
-python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
 ```bash
 cd apps/web
-corepack pnpm dev --hostname 0.0.0.0 --port 3000
+corepack pnpm dev --hostname 127.0.0.1 --port 3000
 ```
 
 The optional services improve planning, parsing, and local-model behavior, but the API has fallbacks so the app still works.
