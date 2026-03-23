@@ -27,6 +27,7 @@ venv/
 # Generated runtime state
 data/
 tmp/
+*.db
 
 # Logs
 *.log

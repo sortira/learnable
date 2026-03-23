@@ -21,7 +21,8 @@
         "name": "next"
       }
     ],
-    "incremental": true
+    "incremental": true,
+    "isolatedModules": true
   },
   "include": [
     "next-env.d.ts",
