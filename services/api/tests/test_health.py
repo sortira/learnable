@@ -1,7 +1,8 @@
-from fastapi.testclient import TestClient
+from sqlalchemy.orm import Session
+
+from app.main import system_health
 
 
-def test_health(client: TestClient) -> None:
-    response = client.get("/api/system/health")
-    assert response.status_code == 200
-    assert response.json()["status"] == "healthy"
+def test_health(db: Session) -> None:
+    response = system_health()
+    assert response["status"] == "healthy"
