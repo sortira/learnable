@@ -12,7 +12,7 @@ api:
 	cd services/api && python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 
 web:
-	cd apps/web && pnpm dev --hostname 127.0.0.1 --port 3000
+	cd apps/web && pnpm dev --port 3000
 
 ingest:
 	cd services/ingest && python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8100

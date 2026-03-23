@@ -57,7 +57,7 @@ python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 
 ```bash
 cd apps/web
-corepack pnpm dev --hostname 127.0.0.1 --port 3000
+corepack pnpm dev --port 3000
 
 Leave `NEXT_PUBLIC_API_BASE_URL` unset or empty so the web app uses the built-in Next.js proxy for `/api/*` requests.
 ```

@@ -263,7 +263,7 @@ python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 
 ```bash
 cd apps/web
-corepack pnpm dev --hostname 127.0.0.1 --port 3000
+corepack pnpm dev --port 3000
 ```
 
 Then open `http://localhost:3000`.
@@ -280,7 +280,7 @@ python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 
 ```bash
 cd apps/web
-corepack pnpm dev --hostname 127.0.0.1 --port 3000
+corepack pnpm dev --port 3000
 ```
 
 The optional services improve planning, parsing, and local-model behavior, but the API has fallbacks so the app still works.
